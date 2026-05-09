@@ -1,0 +1,8 @@
+{
+  "name": "tap-to-talk",
+  "version": "1.0.0",
+  "description": "TAP TO TALK restaurant app",
+  "scripts": {
+    "build": "echo build ok"
+  }
+}
