@@ -6,29 +6,32 @@
 <title>TAP TO TALK</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  :root{
-    --bg:#0c0c10;--s1:#141418;--s2:#1c1c24;--s3:#252530;
-    --gold:#e8b84b;--gold2:#f5d080;
-    --txt:#eeebe4;--muted:#6b6b80;--dim:#2e2e3a;
-    --green:#4be8a0;--red:#e84b6a;--blue:#4b9be8;
-  }
+  :root{--bg:#0c0c10;--s1:#141418;--s2:#1c1c24;--s3:#252530;--gold:#e8b84b;--gold2:#f5d080;--txt:#eeebe4;--muted:#6b6b80;--dim:#2e2e3a;--green:#4be8a0;--red:#e84b6a;--blue:#4b9be8}
   html,body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;height:100%;overflow:hidden}
   .shell{display:flex;flex-direction:column;height:100vh;max-height:100vh;overflow:hidden}
-
   .top-bar{background:var(--s1);border-bottom:1px solid rgba(255,255,255,0.07);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:6px}
   .logo{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:var(--gold)}
   .lang-row{display:flex;gap:2px}
-  .lang-btn{padding:5px 9px;border-radius:5px;border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:500;letter-spacing:.4px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .18s}
+  .lang-btn{padding:5px 9px;border-radius:5px;border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .18s}
   .lang-btn.active{background:var(--gold);color:#0c0c10}
   .view-sw{display:flex;gap:2px;background:var(--bg);border-radius:6px;padding:2px}
   .vbtn{padding:5px 12px;border-radius:5px;border:none;background:transparent;color:var(--muted);font-size:10px;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;transition:all .18s}
   .vbtn.active{background:var(--gold);color:#0c0c10}
-
   .view{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0}
   .view.active{display:flex}
+  .resto-badge{font-size:10px;color:var(--muted);background:var(--s2);border:1px solid var(--dim);border-radius:6px;padding:3px 8px;cursor:pointer;white-space:nowrap}
 
+  /* SETUP */
+  .setup-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;gap:20px}
+  .setup-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px;color:var(--gold)}
+  .setup-sub{font-size:13px;color:var(--muted);text-align:center;line-height:1.7}
+  .setup-field{width:100%;display:flex;flex-direction:column;gap:6px}
+  .setup-btn{width:100%;padding:16px;border-radius:11px;border:none;background:var(--gold);color:#0c0c10;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;cursor:pointer}
+
+  /* CLIENTE */
   .cli{flex:1;display:flex;flex-direction:column;padding:16px 16px 24px;gap:14px;overflow:hidden}
   .fields-row{display:flex;gap:10px;flex-shrink:0}
   .field-wrap{flex:1;display:flex;flex-direction:column;gap:5px}
@@ -36,31 +39,29 @@
   .finput{width:100%;background:var(--s2);border:1px solid var(--dim);border-radius:9px;padding:13px 14px;color:var(--txt);font-family:'DM Sans',sans-serif;font-size:16px;outline:none;transition:border-color .2s}
   .finput:focus{border-color:var(--gold)}
   .finput::placeholder{color:var(--muted)}
-
   .mic-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;min-height:0}
   .mic-hint{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
   .mic-outer{position:relative;display:flex;align-items:center;justify-content:center}
   .pulse-ring{position:absolute;border-radius:50%;border:1px solid rgba(232,184,75,0.13);pointer-events:none;transition:all .3s}
-  .pr1{width:210px;height:210px}
-  .pr2{width:242px;height:242px}
+  .pr1{width:210px;height:210px}.pr2{width:242px;height:242px}
   .mic-btn{width:176px;height:176px;border-radius:50%;border:1.5px solid var(--dim);background:var(--s2);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:all .18s;user-select:none;-webkit-user-select:none;touch-action:none;position:relative;z-index:1}
   .mic-btn.rec{background:var(--gold);border-color:var(--gold2);transform:scale(1.04)}
   .mic-btn.rec .pr1{width:222px;height:222px;border-color:rgba(232,184,75,.45)}
   .mic-btn.rec .pr2{width:258px;height:258px;border-color:rgba(232,184,75,.2);animation:prAnim 1.3s ease-in-out infinite}
   @keyframes prAnim{0%,100%{transform:scale(1);opacity:.8}50%{transform:scale(1.06);opacity:.3}}
-  .mic-svg{width:56px;height:56px;flex-shrink:0;transition:all .18s}
+  .mic-svg{width:56px;height:56px;flex-shrink:0}
   .mic-btn.rec .mic-svg .mic-fill{fill:#0c0c10}
   .mic-btn.rec .mic-svg .mic-stroke{stroke:#0c0c10}
   .mic-lbl{font-size:12px;font-weight:500;letter-spacing:1px;color:var(--muted);transition:color .18s}
   .mic-btn.rec .mic-lbl{color:#0c0c10}
-
   .tx-box{width:100%;background:var(--s2);border:1px solid var(--dim);border-radius:10px;padding:13px 15px;font-size:15px;color:var(--txt);line-height:1.55;font-style:italic;min-height:54px;flex-shrink:0}
   .tx-box.empty{color:var(--muted);font-style:normal}
-  .send-btn{width:100%;padding:16px;border-radius:11px;border:none;background:var(--gold);color:#0c0c10;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;cursor:pointer;letter-spacing:.3px;transition:opacity .2s;flex-shrink:0}
+  .send-btn{width:100%;padding:16px;border-radius:11px;border:none;background:var(--gold);color:#0c0c10;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;cursor:pointer;transition:opacity .2s;flex-shrink:0}
   .send-btn:disabled{opacity:.25;cursor:not-allowed}
   .send-btn:not(:disabled):active{opacity:.75}
   .sent-msg{font-size:12px;color:var(--green);text-align:center;height:16px;transition:opacity .35s;flex-shrink:0}
 
+  /* DIR */
   .dir{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
   .dir-hdr{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
   .dir-ttl{font-size:13px;font-weight:500}
@@ -72,28 +73,20 @@
   .oinfo{flex:1;min-width:0}
   .oitem{font-size:14px;font-weight:500;line-height:1.4;word-break:break-word}
   .ometa{font-size:11px;color:var(--muted);margin-top:4px}
-  .spill{padding:5px 11px;border-radius:20px;font-size:10px;font-weight:500;letter-spacing:.4px;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .18s;flex-shrink:0}
+  .spill{padding:5px 11px;border-radius:20px;font-size:10px;font-weight:500;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .18s;flex-shrink:0}
   .s0{background:rgba(232,184,75,.15);color:var(--gold)}
   .s1{background:rgba(75,155,232,.15);color:var(--blue)}
   .s2{background:rgba(75,232,160,.15);color:var(--green)}
-
   .orig-row{display:flex;align-items:flex-start;gap:5px;margin-top:5px}
   .orig-flag{font-size:12px;flex-shrink:0}
   .orig-txt{font-size:11px;color:var(--muted);font-style:italic;line-height:1.4;word-break:break-word}
   .transl-row{display:flex;align-items:flex-start;gap:5px;margin-top:4px}
-  .transl-flag{font-size:12px;flex-shrink:0}
   .transl-txt{font-size:13px;color:var(--gold2);font-weight:500;line-height:1.4;word-break:break-word}
   .transl-wait{font-size:11px;color:var(--muted);font-style:italic}
   @keyframes spin{to{transform:rotate(360deg)}}
   .transl-spin{display:inline-block;width:10px;height:10px;border:1.5px solid var(--dim);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;margin-top:2px}
-
   .ocard-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;align-items:flex-end;padding-top:2px}
-  .btn-done{padding:8px 14px;border-radius:8px;border:none;background:var(--green);color:#0c0c10;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;letter-spacing:.3px;transition:opacity .18s;white-space:nowrap}
-  .btn-done:active{opacity:.7}
-  .ocard.completed{opacity:.4;border-color:transparent}
-  .ocard.completed .tbadge{color:var(--muted)}
-  .ocard.completed .oitem{text-decoration:line-through;color:var(--muted)}
-
+  .btn-done{padding:8px 14px;border-radius:8px;border:none;background:var(--green);color:#0c0c10;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap}
   .empty-dir{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
   .empty-dir svg{opacity:.18}
   .empty-dir span{font-size:13px;color:var(--muted)}
@@ -101,7 +94,6 @@
 </head>
 <body>
 <div class="shell">
-
   <div class="top-bar">
     <div class="logo">TAP TO TALK</div>
     <div class="lang-row">
@@ -110,14 +102,30 @@
       <button class="lang-btn" onclick="setLang('fr')">FR</button>
       <button class="lang-btn" onclick="setLang('ru')">RU</button>
     </div>
-    <div class="view-sw">
-      <button class="vbtn active" id="tab-c" onclick="goView('cliente',this)">Cliente</button>
-      <button class="vbtn" id="tab-d" onclick="goView('dir',this)">Dir.</button>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="resto-badge" id="resto-badge" onclick="resetResto()">—</span>
+      <div class="view-sw">
+        <button class="vbtn active" id="tab-c" onclick="goView('cliente',this)">Cliente</button>
+        <button class="vbtn" id="tab-d" onclick="goView('dir',this)">Dir.</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div class="view active" id="view-setup">
+    <div class="setup-body">
+      <div class="setup-title">TAP TO TALK</div>
+      <div class="setup-sub">Inserisci il codice del tuo ristorante per iniziare.<br>Lo staff usa lo stesso codice per vedere gli ordini.</div>
+      <div class="setup-field">
+        <div class="flabel">Codice ristorante</div>
+        <input class="finput" id="inp-resto" type="text" placeholder="es. MARIO01" style="text-transform:uppercase" onkeydown="if(event.key==='Enter')setResto()">
+      </div>
+      <button class="setup-btn" onclick="setResto()">Entra →</button>
     </div>
   </div>
 
   <!-- CLIENTE -->
-  <div class="view active" id="view-cliente">
+  <div class="view" id="view-cliente">
     <div class="cli">
       <div class="fields-row">
         <div class="field-wrap">
@@ -162,10 +170,8 @@
       <div class="orders-scroll" id="orders-scroll">
         <div class="empty-dir" id="empty-dir">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6b6b80" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            <path d="M18.63 13A17.9 17.9 0 0 1 18 8"/>
-            <path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"/>
-            <path d="M18 8a6 6 0 0 0-9.33-5"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M18.63 13A17.9 17.9 0 0 1 18 8"/>
+            <path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.33-5"/>
             <line x1="1" y1="1" x2="23" y2="23"/>
           </svg>
           <span id="lbl-noord">Nessun ordine ancora</span>
@@ -173,20 +179,75 @@
       </div>
     </div>
   </div>
-
 </div>
 
 <script>
-const TR = {
-  it:{ tc:'Cliente', td:'Dir.', table:'Tavolo', name:'Nome', hold:'Tieni premuto per parlare', speak:'PARLA', rec:'● REC', ph:'Toccate il microfono e parlate...', send:'Invia alla direzione', sent:'Inviato!', orders:'Ordini ricevuti', noord:'Nessun ordine ancora', st:['Nuovo','In corso','Fatto'], done:'Completato' },
-  en:{ tc:'Guest', td:'Staff', table:'Table', name:'Name', hold:'Hold to speak', speak:'SPEAK', rec:'● REC', ph:'Press the mic and speak...', send:'Send to staff', sent:'Sent!', orders:'Orders received', noord:'No orders yet', st:['New','In progress','Done'], done:'Done' },
-  fr:{ tc:'Client', td:'Dir.', table:'Table', name:'Nom', hold:'Maintenir pour parler', speak:'PARLER', rec:'● REC', ph:'Appuyez sur le micro et parlez...', send:'Envoyer à la direction', sent:'Envoyé!', orders:'Commandes reçues', noord:'Aucune commande', st:['Nouveau','En cours','Fait'], done:'Terminé' },
-  ru:{ tc:'Гость', td:'Персонал', table:'Стол', name:'Имя', hold:'Удерживайте для записи', speak:'ГОВОРИТЬ', rec:'● ЗАПИСЬ', ph:'Нажмите и говорите...', send:'Отправить персоналу', sent:'Отправлено!', orders:'Полученные заказы', noord:'Заказов пока нет', st:['Новый','В процессе','Готово'], done:'Готово' }
-};
-const LC = {it:'it-IT', en:'en-US', fr:'fr-FR', ru:'ru-RU'};
-const FLAGS = {it:'🇮🇹', en:'🇬🇧', fr:'🇫🇷', ru:'🇷🇺'};
+const SUPA_URL='https://aercfsbwqkzaewmoxclu.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFlcmNmc2J3cWt6YWV3bW94Y2x1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzNTU5NTIsImV4cCI6MjA5MzkzMTk1Mn0.7sB_caJ20VB0cnsHw9uK0W06352K-X2XJxhGSyokbRo';
+const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
-let lang='it', recObj=null, isRec=false, transcript='', orders=[], oid=1;
+const TR={
+  it:{tc:'Cliente',td:'Dir.',table:'Tavolo',name:'Nome',hold:'Tieni premuto per parlare',speak:'PARLA',rec:'● REC',ph:'Toccate il microfono e parlate...',send:'Invia alla direzione',sent:'Inviato!',orders:'Ordini ricevuti',noord:'Nessun ordine ancora',st:['Nuovo','In corso','Fatto'],done:'Completato'},
+  en:{tc:'Guest',td:'Staff',table:'Table',name:'Name',hold:'Hold to speak',speak:'SPEAK',rec:'● REC',ph:'Press the mic and speak...',send:'Send to staff',sent:'Sent!',orders:'Orders received',noord:'No orders yet',st:['New','In progress','Done'],done:'Done'},
+  fr:{tc:'Client',td:'Dir.',table:'Table',name:'Nom',hold:'Maintenir pour parler',speak:'PARLER',rec:'● REC',ph:'Appuyez sur le micro et parlez...',send:'Envoyer à la direction',sent:'Envoyé!',orders:'Commandes reçues',noord:'Aucune commande',st:['Nouveau','En cours','Fait'],done:'Terminé'},
+  ru:{tc:'Гость',td:'Персонал',table:'Стол',name:'Имя',hold:'Удерживайте для записи',speak:'ГОВОРИТЬ',rec:'● ЗАПИСЬ',ph:'Нажмите и говорите...',send:'Отправить персоналу',sent:'Отправлено!',orders:'Полученные заказы',noord:'Заказов пока нет',st:['Новый','В процессе','Готово'],done:'Готово'}
+};
+const LC={it:'it-IT',en:'en-US',fr:'fr-FR',ru:'ru-RU'};
+const FLAGS={it:'🇮🇹',en:'🇬🇧',fr:'🇫🇷',ru:'🇷🇺'};
+
+let lang='it',recObj=null,isRec=false,transcript='',restoCode='',orders=[];
+let realtimeSub=null;
+
+function setResto(){
+  const v=document.getElementById('inp-resto').value.trim().toUpperCase();
+  if(!v)return;
+  restoCode=v;
+  localStorage.setItem('ttt_resto',v);
+  document.getElementById('resto-badge').textContent=v;
+  goViewRaw('cliente');
+  document.getElementById('tab-c').classList.add('active');
+  document.getElementById('tab-d').classList.remove('active');
+  loadOrders();
+  subscribeRealtime();
+}
+
+function resetResto(){
+  if(!confirm('Cambiare ristorante?'))return;
+  localStorage.removeItem('ttt_resto');
+  restoCode='';orders=[];
+  if(realtimeSub){sb.removeChannel(realtimeSub);realtimeSub=null;}
+  goViewRaw('setup');
+}
+
+async function loadOrders(){
+  const{data}=await sb.from('orders').select('*').eq('restaurant_code',restoCode).eq('completed',false).order('created_at',{ascending:false});
+  if(data){orders=data;renderOrders();}
+}
+
+function subscribeRealtime(){
+  if(realtimeSub){sb.removeChannel(realtimeSub);}
+  realtimeSub=sb.channel('orders-'+restoCode)
+    .on('postgres_changes',{event:'*',schema:'public',table:'orders',filter:`restaurant_code=eq.${restoCode}`},payload=>{
+      if(payload.eventType==='INSERT'){orders.unshift(payload.new);renderOrders();}
+      else if(payload.eventType==='UPDATE'){
+        const i=orders.findIndex(o=>o.id===payload.new.id);
+        if(payload.new.completed){orders=orders.filter(o=>o.id!==payload.new.id);}
+        else if(i>=0){orders[i]=payload.new;}
+        else{orders.unshift(payload.new);}
+        renderOrders();
+      }
+    }).subscribe();
+}
+
+async function cycleStatus(id){
+  const o=orders.find(x=>x.id===id);
+  if(!o)return;
+  await sb.from('orders').update({status:(o.status+1)%3}).eq('id',id);
+}
+
+async function markDone(id){
+  await sb.from('orders').update({completed:true}).eq('id',id);
+}
 
 function setLang(l){
   lang=l;
@@ -206,148 +267,120 @@ function applyT(){
   document.getElementById('lbl-orders').textContent=t.orders;
   document.getElementById('lbl-noord').textContent=t.noord;
   const tx=document.getElementById('tx');
-  if(tx.classList.contains('empty')) tx.textContent=t.ph;
+  if(tx.classList.contains('empty'))tx.textContent=t.ph;
   renderOrders();
 }
 
-function goView(id,btn){
+function goViewRaw(id){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+id).classList.add('active');
+}
+
+function goView(id,btn){
+  if(!restoCode){goViewRaw('setup');return;}
+  goViewRaw(id);
   document.querySelectorAll('.vbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
 }
 
 function startR(e){
-  if(e) e.preventDefault();
-  if(isRec) return;
-  isRec=true; transcript='';
+  if(e)e.preventDefault();
+  if(isRec)return;
+  isRec=true;transcript='';
   document.getElementById('mic-btn').classList.add('rec');
   document.getElementById('mic-lbl').textContent=TR[lang].rec;
   const tx=document.getElementById('tx');
-  tx.classList.remove('empty'); tx.textContent='';
+  tx.classList.remove('empty');tx.textContent='';
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ tx.textContent='[Speech API non supportata — usa Chrome o Safari]'; stopR(); return; }
-  recObj=new SR();
-  recObj.lang=LC[lang]||'it-IT';
-  recObj.continuous=true;
-  recObj.interimResults=true;
+  if(!SR){tx.textContent='[Speech API non supportata — usa Chrome o Safari]';stopR();return;}
+  recObj=new SR();recObj.lang=LC[lang]||'it-IT';recObj.continuous=true;recObj.interimResults=true;
   recObj.onresult=function(ev){
     let f='',interim='';
-    for(let i=ev.resultIndex;i<ev.results.length;i++){
-      const r=ev.results[i];
-      if(r.isFinal) f+=r[0].transcript; else interim+=r[0].transcript;
-    }
+    for(let i=ev.resultIndex;i<ev.results.length;i++){const r=ev.results[i];if(r.isFinal)f+=r[0].transcript;else interim+=r[0].transcript;}
     transcript=f||interim;
     tx.textContent=transcript;
     document.getElementById('send-btn').disabled=!transcript.trim();
   };
-  recObj.onerror=function(){ stopR(); };
+  recObj.onerror=function(){stopR();};
   recObj.start();
 }
 
 function stopR(){
-  if(!isRec) return;
+  if(!isRec)return;
   isRec=false;
   document.getElementById('mic-btn').classList.remove('rec');
   document.getElementById('mic-lbl').textContent=TR[lang].speak;
-  if(recObj){ try{ recObj.stop(); }catch(e){} recObj=null; }
+  if(recObj){try{recObj.stop();}catch(e){}recObj=null;}
   const tx=document.getElementById('tx');
-  if(!transcript.trim()){ tx.classList.add('empty'); tx.textContent=TR[lang].ph; }
+  if(!transcript.trim()){tx.classList.add('empty');tx.textContent=TR[lang].ph;}
 }
 
-async function translateToIT(text, srcLang){
-  if(srcLang==='it') return null;
+async function translateToIT(text,srcLang){
+  if(srcLang==='it')return null;
   try{
-    const res=await fetch('/.netlify/functions/translate',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text, srcLang})
-    });
+    const res=await fetch('/.netlify/functions/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,srcLang})});
     const data=await res.json();
     return data?.result||null;
-  }catch(e){ return null; }
+  }catch(e){return null;}
 }
 
 async function sendOrder(){
   const tbl=document.getElementById('inp-table').value.trim()||'?';
   const name=document.getElementById('inp-name').value.trim();
-  if(!transcript.trim()) return;
+  if(!transcript.trim())return;
   const origText=transcript.trim();
   const srcLang=lang;
-  const order={
-    id:oid++, table:tbl, name, item:origText,
-    translated:null, translating:(srcLang!=='it'), lang:srcLang,
-    status:0, completed:false,
-    time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
-  };
-  orders.unshift(order);
-  renderOrders();
+  const{data}=await sb.from('orders').insert({restaurant_code:restoCode,table_name:tbl,guest_name:name,item:origText,translated:null,lang:srcLang,status:0,completed:false}).select().single();
   const f=document.getElementById('sent-msg');
-  f.textContent=TR[lang].sent; f.style.opacity='1';
+  f.textContent=TR[lang].sent;f.style.opacity='1';
   setTimeout(()=>f.style.opacity='0',1800);
   transcript='';
   const tx=document.getElementById('tx');
-  tx.classList.add('empty'); tx.textContent=TR[lang].ph;
+  tx.classList.add('empty');tx.textContent=TR[lang].ph;
   document.getElementById('send-btn').disabled=true;
-  if(srcLang!=='it'){
+  if(srcLang!=='it'&&data){
     const tr=await translateToIT(origText,srcLang);
-    order.translated=tr;
-    order.translating=false;
-    renderOrders();
+    if(tr)await sb.from('orders').update({translated:tr}).eq('id',data.id);
   }
 }
 
-function cycleStatus(id){
-  const o=orders.find(x=>x.id===id);
-  if(o){ o.status=(o.status+1)%3; renderOrders(); }
-}
-
-function markDone(id){
-  const o=orders.find(x=>x.id===id);
-  if(o){ o.completed=true; renderOrders(); }
-}
-
-function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 function renderOrders(){
   const t=TR[lang];
   const sc=document.getElementById('orders-scroll');
   const em=document.getElementById('empty-dir');
   document.getElementById('lbl-noord').textContent=t.noord;
-  document.getElementById('ord-count').textContent=orders.filter(o=>!o.completed).length;
+  document.getElementById('ord-count').textContent=orders.length;
   sc.querySelectorAll('.ocard').forEach(c=>c.remove());
-  if(!orders.length){ em.style.display='flex'; return; }
+  if(!orders.length){em.style.display='flex';return;}
   em.style.display='none';
   orders.forEach(o=>{
-    const cls=['s0','s1','s2'][o.status];
-    const d=document.createElement('div');
-    d.className='ocard'+(o.completed?' completed':'');
+    const cls=['s0','s1','s2'][o.status]||'s0';
+    const d=document.createElement('div');d.className='ocard';
     const foreign=(o.lang&&o.lang!=='it');
     const origBlock=foreign?`<div class="orig-row"><span class="orig-flag">${FLAGS[o.lang]||''}</span><span class="orig-txt">${esc(o.item)}</span></div>`:'';
-    const translBlock=foreign?(
-      o.translating
-        ?`<div class="transl-row"><span class="transl-spin"></span><span class="transl-wait"> traduzione...</span></div>`
-        :(o.translated?`<div class="transl-row"><span class="transl-flag">🇮🇹</span><span class="transl-txt">${esc(o.translated)}</span></div>`:'')
-    ):'';
+    const translBlock=foreign?(o.translated?`<div class="transl-row"><span style="font-size:12px">🇮🇹</span><span class="transl-txt">${esc(o.translated)}</span></div>`:`<div class="transl-row"><span class="transl-spin"></span><span class="transl-wait"> traduzione...</span></div>`):'';
     const mainText=foreign?(o.translated||o.item):o.item;
+    const timeStr=new Date(o.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     d.innerHTML=`
-      <div class="tbadge">${esc(o.table)}</div>
+      <div class="tbadge">${esc(o.table_name||'?')}</div>
       <div class="oinfo">
         <div class="oitem">${esc(mainText)}</div>
-        ${origBlock}
-        ${translBlock}
-        <div class="ometa">${o.name?esc(o.name)+' · ':''}${o.time}</div>
+        ${origBlock}${translBlock}
+        <div class="ometa">${o.guest_name?esc(o.guest_name)+' · ':''}${timeStr}</div>
       </div>
       <div class="ocard-actions">
-        <button class="spill ${cls}" onclick="cycleStatus(${o.id})" ${o.completed?'disabled style="opacity:.4;cursor:default"':''}>${t.st[o.status]}</button>
-        ${!o.completed
-          ?`<button class="btn-done" onclick="markDone(${o.id})">✓ ${t.done}</button>`
-          :`<span style="font-size:10px;color:var(--green)">✓ ${t.done}</span>`}
+        <button class="spill ${cls}" onclick="cycleStatus(${o.id})">${t.st[o.status]||t.st[0]}</button>
+        <button class="btn-done" onclick="markDone(${o.id})">✓ ${t.done}</button>
       </div>`;
     sc.appendChild(d);
   });
 }
 
+const savedResto=localStorage.getItem('ttt_resto');
+if(savedResto){restoCode=savedResto;document.getElementById('resto-badge').textContent=savedResto;goViewRaw('cliente');loadOrders();subscribeRealtime();}
+else{goViewRaw('setup');}
 applyT();
 </script>
 </body>
